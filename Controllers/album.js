@@ -86,6 +86,7 @@ function deleteAlbum(req,res){
     });
 }
 
+
 module.exports ={
     getAlbum,
     getAlbums,

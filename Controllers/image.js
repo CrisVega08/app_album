@@ -28,14 +28,29 @@ function getImage(req, res){
 }
 
 function getImages(req,res){
-    Image.find({},(err,imagesArray)=>{
+    var idAlbum = req.params.album;
+    if(!idAlbum){
+        var find=Image.find({}).sort('-title')
+    }else{
+        //sacar las imagenes del album
+        var find=Image.find({album: idAlbum}).sort('-title')
+    }
+    find.exec((err, imagesArray)=>{
         if(err){
             return res.status(500).send({message: 'Error al mostrar las imagenes'});
         }else{
             if(!imagesArray){
                 res.status(404).send({message: 'No hay imagenes'});
             }else{
-                res.status(200).send({Imagenes: imagesArray});
+                
+                Album.populate(imagesArray, { path: 'album' }, (err,images) => {
+                    if(err){
+                        res.status(500).send({message: 'Error en la petición'}); 
+                    }else{
+                        res.status(200).send({images});    	
+                    }
+                });
+
             }
         }
     });
@@ -80,12 +95,24 @@ function updateImage(req, res){
 }
 
 function deleteImage(req, res){
-    var imageId= req.params.id;
+    var imageId = req.params.id;
+
+    Image.findByIdAndRemove(imageId,(err,deletedImage)=>{
+        if(err){
+            return res.status(500).send({message: 'Error al eliminar'}); 
+        }else{
+			if(!deletedImage){
+				res.status(404).send({message: 'No se ha eliminar la imagen'});
+			}else{
+				res.status(200).send({Image: deletedImage});
+			}	
+		}
+    });
 }
 module.exports = {
     getImage,
     getImages,
     saveImage,
-    updateImage
-
+    updateImage,
+    deleteImage
 };
